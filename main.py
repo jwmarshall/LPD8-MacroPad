@@ -1,10 +1,25 @@
 import mido
 import subprocess
+import asyncio
 
 from enum import Enum, unique
+from kasa import Discover, SmartPlug
 
 
 MIDI_PORT = "LPD8 mk2:LPD8 mk2 MIDI 1 20:0"
+
+
+async def discover_plugs():
+    print("Discovering smart plugs...")
+    devices = await Discover.discover()
+    alias_addr_map = {}
+    for addr, dev in devices.items():
+        await dev.update()
+        alias_addr_map[dev.alias] = addr
+    return alias_addr_map
+
+
+SMARTPLUGS = asyncio.run(discover_plugs())
 
 
 @unique
@@ -103,6 +118,25 @@ def toggle_mute(value):
     subprocess.run(["amixer", "set", "Master", "toggle"])
 
 
+async def toggle_plug(alias):
+    plug = SmartPlug(alias)
+    await plug.update()
+    if plug.is_on:
+        await plug.turn_off()
+    else:
+        await plug.turn_on()
+
+
+def toggle_plug_sync(alias):
+    asyncio.run(toggle_plug(alias))
+
+
+def toggle_studio_lights(value):
+    print("Toggling studio lights")
+    toggle_plug_sync(SMARTPLUGS["STUDIO_1"])
+    # toggle_plug_sync(SMARTPLUGS["STUDIO2"])
+
+
 ACTION_MAP = {
     # Knobs
     Control.KNOB1: set_volume,
@@ -117,7 +151,7 @@ ACTION_MAP = {
     Control.PAD1: lambda _: print("Pad 1 pressed"),
     Control.PAD2: lambda _: print("Pad 2 pressed"),
     Control.PAD3: lambda _: print("Pad 3 pressed"),
-    Control.PAD4: lambda _: print("Pad 4 pressed"),
+    Control.PAD4: toggle_studio_lights,
     Control.PAD5: lambda _: print("Pad 5 pressed"),
     Control.PAD6: lambda _: print("Pad 6 pressed"),
     Control.PAD7: toggle_mute,
