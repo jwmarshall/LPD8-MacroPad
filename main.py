@@ -92,11 +92,15 @@ def set_microphone(value):
 
 def set_left_right_balance(value=64):
     # 0 is full left, 127 is full right
-    # calculate left/right balance
     left = 100 - (value * 100 // 127)
     right = 100 - left
     print(f"Setting left/right balance to {left}%/{right}%")
     subprocess.run(["amixer", "-D", "pulse", "set", "Master", f"{left}%,{right}%"])
+
+
+def toggle_mute(value):
+    print("Toggling mute")
+    subprocess.run(["amixer", "set", "Master", "toggle"])
 
 
 ACTION_MAP = {
@@ -116,7 +120,7 @@ ACTION_MAP = {
     Control.PAD4: lambda _: print("Pad 4 pressed"),
     Control.PAD5: lambda _: print("Pad 5 pressed"),
     Control.PAD6: lambda _: print("Pad 6 pressed"),
-    Control.PAD7: lambda _: print("Pad 7 pressed"),
+    Control.PAD7: toggle_mute,
     Control.PAD8: lambda _: set_left_right_balance(64),
 }
 
