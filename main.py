@@ -64,7 +64,7 @@ def set_volume(value):
 
 def set_microphone(value):
     print(f"Setting microphone to {value}%")
-    subprocess.run(["amixer", "set", "Mic", f"{value}%"])
+    subprocess.run(["amixer", "set", "Capture", f"{value}%"])
 
 
 ACTION_MAP = {
