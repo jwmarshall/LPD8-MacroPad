@@ -61,10 +61,35 @@ class Channels(Enum):
 
 
 @unique
+class Programs(Enum):
+    PRG1 = 0
+    PRG2 = 1
+    PRG3 = 2
+    PRG4 = 3
+    PRG5 = 4
+    PRG6 = 5
+    PRG7 = 6
+    PRG8 = 7
+
+
+@unique
+class Banks(Enum):
+    BANK1 = 12
+    BANK2 = 13
+    BANK3 = 14
+    BANK4 = 15
+    BANK5 = 16
+    BANK6 = 17
+    BANK7 = 18
+    BANK8 = 19
+
+
+@unique
 class Messages(Enum):
     NOTE_ON = "note_on"
     NOTE_OFF = "note_off"
     CONTROL_CHANGE = "control_change"
+    PROGRAM_CHANGE = "program_change"
 
 
 @unique
@@ -88,6 +113,26 @@ class Control(Enum):
     PAD6 = (Messages.NOTE_ON, Pads.PAD6, Channels.CH10)
     PAD7 = (Messages.NOTE_ON, Pads.PAD7, Channels.CH10)
     PAD8 = (Messages.NOTE_ON, Pads.PAD8, Channels.CH10)
+
+    # Programs
+    PRG1 = (Messages.PROGRAM_CHANGE, Programs.PRG1, Channels.CH10)
+    PRG2 = (Messages.PROGRAM_CHANGE, Programs.PRG2, Channels.CH10)
+    PRG3 = (Messages.PROGRAM_CHANGE, Programs.PRG3, Channels.CH10)
+    PRG4 = (Messages.PROGRAM_CHANGE, Programs.PRG4, Channels.CH10)
+    PRG5 = (Messages.PROGRAM_CHANGE, Programs.PRG5, Channels.CH10)
+    PRG6 = (Messages.PROGRAM_CHANGE, Programs.PRG6, Channels.CH10)
+    PRG7 = (Messages.PROGRAM_CHANGE, Programs.PRG7, Channels.CH10)
+    PRG8 = (Messages.PROGRAM_CHANGE, Programs.PRG8, Channels.CH10)
+
+    # Banks
+    BANK1 = (Messages.CONTROL_CHANGE, Banks.BANK1, Channels.CH10)
+    BANK2 = (Messages.CONTROL_CHANGE, Banks.BANK2, Channels.CH10)
+    BANK3 = (Messages.CONTROL_CHANGE, Banks.BANK3, Channels.CH10)
+    BANK4 = (Messages.CONTROL_CHANGE, Banks.BANK4, Channels.CH10)
+    BANK5 = (Messages.CONTROL_CHANGE, Banks.BANK5, Channels.CH10)
+    BANK6 = (Messages.CONTROL_CHANGE, Banks.BANK6, Channels.CH10)
+    BANK7 = (Messages.CONTROL_CHANGE, Banks.BANK7, Channels.CH10)
+    BANK8 = (Messages.CONTROL_CHANGE, Banks.BANK8, Channels.CH10)
 
     def __init__(self, message_type, control_id, channel):
         self.message_type = message_type
@@ -156,6 +201,24 @@ ACTION_MAP = {
     Control.PAD6: lambda _: print("Pad 6 pressed"),
     Control.PAD7: toggle_mute,
     Control.PAD8: lambda _: set_left_right_balance(64),
+    # Programs
+    Control.PRG1: lambda _: print("Program 1 selected"),
+    Control.PRG2: lambda _: print("Program 2 selected"),
+    Control.PRG3: lambda _: print("Program 3 selected"),
+    Control.PRG4: lambda _: print("Program 4 selected"),
+    Control.PRG5: lambda _: print("Program 5 selected"),
+    Control.PRG6: lambda _: print("Program 6 selected"),
+    Control.PRG7: lambda _: print("Program 7 selected"),
+    Control.PRG8: lambda _: print("Program 8 selected"),
+    # Banks
+    Control.BANK1: lambda _: print("Bank 1 selected"),
+    Control.BANK2: lambda _: print("Bank 2 selected"),
+    Control.BANK3: lambda _: print("Bank 3 selected"),
+    Control.BANK4: lambda _: print("Bank 4 selected"),
+    Control.BANK5: lambda _: print("Bank 5 selected"),
+    Control.BANK6: lambda _: print("Bank 6 selected"),
+    Control.BANK7: lambda _: print("Bank 7 selected"),
+    Control.BANK8: lambda _: print("Bank 8 selected"),
 }
 
 
@@ -165,6 +228,8 @@ def perform_action(control, message):
     if action:
         if control.message_type == Messages.NOTE_ON:
             action(message.velocity)
+        if control.message_type == Messages.PROGRAM_CHANGE:
+            action(message.program)
         if control.message_type == Messages.CONTROL_CHANGE:
             action(message.value)
     else:
@@ -189,6 +254,13 @@ def is_matching_control_change(message, control):
     )
 
 
+def is_matching_program_change(message, control):
+    return (
+        message.type == Messages.PROGRAM_CHANGE.value
+        and message.program == control.control_id.value
+    )
+
+
 def is_matching_channel(message, control):
     return message.channel == control.channel.value
 
@@ -201,6 +273,7 @@ def handle_message(message):
             and (
                 is_matching_note_on(message, control)
                 or is_matching_control_change(message, control)
+                or is_matching_program_change(message, control)
             )
             and is_matching_channel(message, control)
         ):
